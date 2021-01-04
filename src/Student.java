@@ -1,16 +1,18 @@
 import java.util.Scanner;
+import java.lang.Exception;
 
-class Student {
-    private String firstName;
-    private String lastName;
+public class Student {
+    private static final int MAX_STUDENTS = 8000;
+    private static int numOfStudents = 0;
+    private final String firstName;
+    private final String lastName;
     private int studentID;
-    private String year;
+    private final String year;
     private String courses = "";
     private int tuitionBalance = 0;
     private static final int courseFee = 600;
     private static int id = 1000;
 
-    // Private constructor forces public static factory
     private Student() {
         Scanner in = new Scanner( System.in );
         System.out.print( "Enter student first name: " );
@@ -19,24 +21,27 @@ class Student {
         this.lastName = in.nextLine();
         System.out.print( "Enter student class level (i.e. freshman, sophomore...): ");
         this.year = in.nextLine();
-        setStudentID();
+        this.setStudentID();
         System.out.println( "New student added: " + firstName + " " + lastName + " " + year.toUpperCase() +
-                " " + studentID );
+                " " + this.studentID );
+        numOfStudents++;
     }
 
-    // Static factory provides only access to class instantiation
-    public static Student addNewStudent() {
-        return new Student();
+    public static Student addNewStudent() throws IllegalStateException {
+            if( numOfStudents < MAX_STUDENTS )
+                return new Student();
+            else {
+                throw new IllegalStateException( "Max students reached. Please push enrollment to next year and" +
+                        " notify student." );
+            }
     }
 
-    // Generate a student ID
     private void setStudentID() {
-        id++;
         this.studentID = id * 31;
+        id++;
     }
 
-    // Enroll in courses
-    void enroll() {
+    protected void enroll() {
         do {
             System.out.print("Enter course to enroll (Q to quit): ");
             Scanner in = new Scanner(System.in);
@@ -51,12 +56,11 @@ class Student {
         System.out.println( "Enrolled in: " + courses );
     }
 
-    // View balance and pay tuition
-    void viewBalance() {
+    protected void viewBalance() {
         System.out.println( "Your balance is $" + tuitionBalance );
     }
 
-    void payTuition() {
+    protected void payTuition() {
         viewBalance();
         System.out.print( "Enter your payment: " );
         Scanner in = new Scanner( System.in );
@@ -66,12 +70,15 @@ class Student {
         viewBalance();
     }
 
-    // Overridden toString method to return concise summary of Student
     @Override
     public String toString() {
         return "Name: " + firstName + " " + lastName +
                 "\nStudent ID number is " + studentID +
                 "\nCourses enrolled: " + courses +
                 "\nTuition balance: $" + tuitionBalance;
+    }
+
+    public static int getNumOfStudents(){
+        return numOfStudents;
     }
 }
