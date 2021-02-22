@@ -1,17 +1,18 @@
 import java.util.Scanner;
-import java.lang.Exception;
 
 public class Student {
     private static final int MAX_STUDENTS = 8000;
     private static int numOfStudents = 0;
+    private static final int COURSE_FEE = 600;
+    private static final int ID = 1000;
+
     private final String firstName;
     private final String lastName;
-    private int studentID;
     private final String year;
-    private String courses = "";
+    private int studentID;
+    private final StringBuilder courses = new StringBuilder();
     private int tuitionBalance = 0;
-    private static final int courseFee = 600;
-    private static int id = 1000;
+
 
     private Student() {
         Scanner in = new Scanner( System.in );
@@ -37,30 +38,26 @@ public class Student {
     }
 
     private void setStudentID() {
-        this.studentID = id * 31;
-        id++;
+        this.studentID = ID + numOfStudents;
     }
 
-    protected void enroll() {
+    public void enroll() {
         do {
             System.out.print("Enter course to enroll (Q to quit): ");
             Scanner in = new Scanner(System.in);
             String course = in.nextLine();
             if ( !course.matches( "[Qq]" ) ) {
-                courses += "\n" + course;
-                tuitionBalance += courseFee;
+                courses.append("\n");
+                courses.append(course);
+                tuitionBalance += COURSE_FEE;
             } else {
                 break;
             }
         } while( 1 != 0 );
-        System.out.println( "Enrolled in: " + courses );
+        System.out.println( "Enrolled in: " + courses.toString() );
     }
 
-    protected void viewBalance() {
-        System.out.println( "Your balance is $" + tuitionBalance );
-    }
-
-    protected void payTuition() {
+    public void payTuition() {
         viewBalance();
         System.out.print( "Enter your payment: " );
         Scanner in = new Scanner( System.in );
@@ -70,15 +67,46 @@ public class Student {
         viewBalance();
     }
 
+    public static int getNumOfStudents() {return numOfStudents;       }
+    public static int getMaxStudents()   { return MAX_STUDENTS;       }
+    public static int getCourseFee()     { return COURSE_FEE;         }
+
+    public String getFirstName()         { return firstName;          }
+    public String getLastName()          { return lastName;           }
+    public String getYear()              { return year;               }
+    public int getStudentID()            { return studentID;          }
+    public String getCourses()           { return courses.toString(); }
+    public int getTuitionBalance()       { return tuitionBalance;     }
+
+    public void viewBalance() {
+        System.out.println( "Student's balance is $" + tuitionBalance );
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if(o == this)
+            return true;
+        if(!(o instanceof Student))
+            return false;
+        Student st = (Student) o;
+        return st.getFirstName().equals(this.getFirstName()) &&
+                st.getLastName().equals(this.getLastName()) &&
+                st.getStudentID() == this.getStudentID();
+    }
+
+    @Override
+    public int hashCode() {
+        int result = firstName.hashCode();
+        result = 31 * result + lastName.hashCode();
+        result = 31 * result + Integer.hashCode(studentID);
+        return result;
+    }
+
     @Override
     public String toString() {
         return "Name: " + firstName + " " + lastName +
                 "\nStudent ID number is " + studentID +
                 "\nCourses enrolled: " + courses +
                 "\nTuition balance: $" + tuitionBalance;
-    }
-
-    public static int getNumOfStudents(){
-        return numOfStudents;
     }
 }
