@@ -53,7 +53,7 @@ public class Student {
             } else {
                 break;
             }
-        } while( 1 != 0 );
+        } while( true );
         System.out.println( "Enrolled in: " + courses.toString() );
     }
 
