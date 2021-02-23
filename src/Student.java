@@ -53,11 +53,7 @@ public class Student {
             } else {
                 break;
             }
-<<<<<<< HEAD
-        } while( true );
-=======
         } while(1 != 0);
->>>>>>> alter-student
         System.out.println( "Enrolled in: " + courses.toString() );
     }
 
