@@ -5,6 +5,7 @@ public class Student {
     private static int numOfStudents = 0;
     private static final int COURSE_FEE = 600;
     private static final int ID = 1000;
+    private static boolean test = false;
 
     private final String firstName;
     private final String lastName;
