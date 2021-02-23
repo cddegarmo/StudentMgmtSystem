@@ -12,8 +12,7 @@ public class Student {
     private int studentID;
     private final StringBuilder courses = new StringBuilder();
     private int tuitionBalance = 0;
-
-
+    
     private Student() {
         Scanner in = new Scanner( System.in );
         System.out.print( "Enter student first name: " );
