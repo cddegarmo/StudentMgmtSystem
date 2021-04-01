@@ -1,111 +1,62 @@
-import java.util.Scanner;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.List;
 
 public class Student {
-    private static final int MAX_STUDENTS = 8000;
-    private static int numOfStudents = 0;
-    private static final int COURSE_FEE = 600;
-    private static final int ID = 1000;
 
     private final String firstName;
     private final String lastName;
-    private final String year;
+    private final int year;
     private int studentID;
-    private final StringBuilder courses = new StringBuilder();
+    private final Map<Integer, List<String>> courses = new HashMap<>();
     private int tuitionBalance = 0;
     
-    private Student() {
-        Scanner in = new Scanner( System.in );
-        System.out.print( "Enter student first name: " );
-        this.firstName = in.nextLine();
-        System.out.print( "Enter student last name: ");
-        this.lastName = in.nextLine();
-        System.out.print( "Enter student class level (i.e. freshman, sophomore...): ");
-        this.year = in.nextLine();
-        this.setStudentID();
-        System.out.println( "New student added: " + firstName + " " + lastName + " " + year.toUpperCase() +
-                " " + this.studentID );
-        numOfStudents++;
+    Student(String first, String last, int year) {
+        firstName = first;
+        lastName = last;
+        this.year = year;
     }
 
-    public static Student addNewStudent() throws IllegalStateException {
-            if( numOfStudents < MAX_STUDENTS )
-                return new Student();
-            else {
-                throw new IllegalStateException( "Max students reached. Please push enrollment to next year and" +
-                        " notify student." );
-            }
+    public String getFirstName()   { return firstName;      }
+    public String getLastName()    { return lastName;       }
+    public int getYear()           { return year;           }
+    public int getTuitionBalance() { return tuitionBalance; }
+
+    public void setStudentID(int value) {
+        studentID = value;
     }
 
-    private void setStudentID() {
-        this.studentID = ID + numOfStudents;
+    public void enroll(Integer year, List<String> courses) {
+        this.courses.putIfAbsent(year, courses);
     }
 
-    public void enroll() {
-        do {
-            System.out.print("Enter course to enroll (Q to quit): ");
-            Scanner in = new Scanner(System.in);
-            String course = in.nextLine();
-            if ( !course.matches( "[Qq]" ) ) {
-                courses.append("\n");
-                courses.append(course);
-                tuitionBalance += COURSE_FEE;
-            } else {
-                break;
-            }
-        } while(1 != 0);
-        System.out.println( "Enrolled in: " + courses.toString() );
+    public void payTuition(int deposit) {
+        tuitionBalance -= deposit;
     }
 
-    public void payTuition() {
-        viewBalance();
-        System.out.print( "Enter your payment: " );
-        Scanner in = new Scanner( System.in );
-        int payment = in.nextInt();
-        tuitionBalance -= payment;
-        System.out.println( "Thank you for your payment of $" + payment );
-        viewBalance();
+    String getYearName(int year) {
+        String[] years = {"Freshman", "Sophomore", "Junior", "Senior"};
+        return years[year - 1];
     }
 
-    public static int getNumOfStudents() {return numOfStudents;       }
-    public static int getMaxStudents()   { return MAX_STUDENTS;       }
-    public static int getCourseFee()     { return COURSE_FEE;         }
-
-    public String getFirstName()         { return firstName;          }
-    public String getLastName()          { return lastName;           }
-    public String getYear()              { return year;               }
-    public int getStudentID()            { return studentID;          }
-    public String getCourses()           { return courses.toString(); }
-    public int getTuitionBalance()       { return tuitionBalance;     }
-
-    public void viewBalance() {
-        System.out.println( "Student's balance is $" + tuitionBalance );
-    }
-
-    @Override
     public boolean equals(Object o) {
-        if(o == this)
+        if (o == this)
             return true;
-        if(!(o instanceof Student))
+        if (!(o instanceof Student))
             return false;
-        Student st = (Student) o;
-        return st.getFirstName().equals(this.getFirstName()) &&
-                st.getLastName().equals(this.getLastName()) &&
-                st.getStudentID() == this.getStudentID();
+        Student s = (Student) o;
+        return s.firstName.equals(firstName) && s.lastName.equals(lastName) &&
+             s.year == year;
     }
 
-    @Override
     public int hashCode() {
         int result = firstName.hashCode();
         result = 31 * result + lastName.hashCode();
-        result = 31 * result + Integer.hashCode(studentID);
+        result = 31 * result + Integer.hashCode(year);
         return result;
     }
 
-    @Override
     public String toString() {
-        return "Name: " + firstName + " " + lastName +
-                "\nStudent ID number is " + studentID +
-                "\nCourses enrolled: " + courses +
-                "\nTuition balance: $" + tuitionBalance;
+        return String.format("%n%s, %s : %s", lastName, firstName, getYearName(year));
     }
 }

@@ -4,3 +4,4 @@
 out/
 artifacts/
 .DS_Store
+src/data/
