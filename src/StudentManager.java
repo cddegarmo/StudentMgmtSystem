@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class StudentManager {
    // Enforce singleton
@@ -22,9 +23,13 @@ public class StudentManager {
    private static final int ID = 1000;
    private static final Logger logger = Logger.getLogger(Student.class.getName());
 
-   // Nested class purely for formatting
+   // Nested class for formatting student output
    private static class StudentFormatter {
-      private ResourceBundle resource = ResourceBundle.getBundle("students");
+      private ResourceBundle resource;
+
+      private StudentFormatter() {
+         resource = ResourceBundle.getBundle("students");
+      }
 
       private String formatStudent(Student student) {
          return MessageFormat.format(resource.getString("student.format"),
@@ -39,12 +44,24 @@ public class StudentManager {
    private final StudentFormatter sf = new StudentFormatter();
    private final ResourceBundle config = ResourceBundle.getBundle("config");
    private final MessageFormat studentFormat = new MessageFormat(config.getString("student.data"));
-   private final Path dataFolder = Path.of(config.getString("data.folder"));
+   private final Path dataFolder = Path.of(config.getString("data.file"));
 
    private StudentManager() {}
 
    public static StudentManager getInstance() {
       return sm;
+   }
+
+   public int getMaxStudents()   { return MAX_STUDENTS;  }
+   public int getNumOfStudents() { return numOfStudents; }
+   public int getCourseFee()     { return COURSE_FEE;    }
+
+   public String printStudents() {
+      return students.stream()
+                     .sorted()
+                     .map(s -> sf.formatStudent(s))
+                     .collect(
+                          Collectors.joining("\n"));
    }
 
    private Student parseStudent(String text) {
@@ -61,11 +78,14 @@ public class StudentManager {
       return student;
    }
 
-   public void loadStudent() {
-      try (BufferedReader in = new BufferedReader(new FileReader(config.getString("data.file")))) {
+   void loadStudents() {
+      try (BufferedReader in = new BufferedReader(
+           new FileReader(String.valueOf(dataFolder)))) {
          String line = null;
-         while ((line = in.readLine()) != null)
+         while ((line = in.readLine()) != null) {
             students.add(parseStudent(line));
+            numOfStudents++;
+         }
       } catch (IOException e) {
          logger.log(Level.SEVERE, "Error loading student " + e.getMessage(), e);
       }
