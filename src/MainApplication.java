@@ -6,7 +6,8 @@ import java.util.Scanner;
 class MainApplication {
     public static void main(String[] args){
         StudentManager sm = StudentManager.getInstance();
-        sm.loadStudent();
-        System.out.println(sm.students);
+        sm.loadStudents();
+        System.out.println(sm.printStudents());
+        System.out.println(sm.getNumOfStudents());
     }
 }
