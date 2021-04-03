@@ -1,3 +1,5 @@
+package appclasses;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
@@ -11,20 +13,18 @@ public class Student implements Comparable<Student> {
     private final Map<Integer, List<String>> courses = new HashMap<>();
     private int tuitionBalance = 0;
     
-    Student(String first, String last, int year) {
+    Student(String first, String last, int year, int id) {
         firstName = first;
         lastName = last;
         this.year = year;
+        studentID = id;
     }
 
     public String getFirstName()   { return firstName;      }
     public String getLastName()    { return lastName;       }
     public int getYear()           { return year;           }
     public int getTuitionBalance() { return tuitionBalance; }
-
-    public void setStudentID(int value) {
-        studentID = value;
-    }
+    public int getStudentID()      { return studentID;      }
 
     public void enroll(Integer year, List<String> courses) {
         this.courses.putIfAbsent(year, courses);

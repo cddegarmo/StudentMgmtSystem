@@ -20,15 +20,21 @@ public class StudentManager {
    private static final int MAX_STUDENTS = 2000;
    private static int numOfStudents = 0;
    private static final int COURSE_FEE = 600;
-   private static final int ID = 1000;
+   private static int id = 1000;
    private static final Logger logger = Logger.getLogger(Student.class.getName());
 
    // Nested class for formatting student output
    private static class StudentFormatter {
       private ResourceBundle resource;
+      private ResourceBundle config;
+      private MessageFormat studentFormat;
+      private Path dataFolder;
 
       private StudentFormatter() {
          resource = ResourceBundle.getBundle("students");
+         config = ResourceBundle.getBundle("config");
+         studentFormat = new MessageFormat(config.getString("student.data"));
+         dataFolder = Path.of(config.getString("data.folder"));
       }
 
       private String formatStudent(Student student) {
@@ -42,9 +48,6 @@ public class StudentManager {
 
    public final List<Student> students = new ArrayList<>();
    private final StudentFormatter sf = new StudentFormatter();
-   private final ResourceBundle config = ResourceBundle.getBundle("config");
-   private final MessageFormat studentFormat = new MessageFormat(config.getString("student.data"));
-   private final Path dataFolder = Path.of(config.getString("data.file"));
 
    private StudentManager() {}
 
@@ -67,11 +70,11 @@ public class StudentManager {
    private Student parseStudent(String text) {
       Student student = null;
       try {
-         Object[] values = studentFormat.parse(text);
+         Object[] values = sf.studentFormat.parse(text);
          String firstName = (String) values[0];
          String lastName = (String) values[1];
          int year = Integer.parseInt((String) values[2]);
-         student = new Student(firstName, lastName, year);
+         student = new Student(firstName, lastName, year, ++id);
       } catch (ParseException e) {
          logger.log(Level.WARNING, "Error parsing student " + e.getMessage(), e);
       }
@@ -80,7 +83,7 @@ public class StudentManager {
 
    void loadStudents() {
       try (BufferedReader in = new BufferedReader(
-           new FileReader(String.valueOf(dataFolder)))) {
+           new FileReader(String.valueOf(sf.dataFolder.resolve("students.csv"))))) {
          String line = null;
          while ((line = in.readLine()) != null) {
             students.add(parseStudent(line));
