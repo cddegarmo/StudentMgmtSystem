@@ -2,7 +2,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 
-public class Student {
+public class Student implements Comparable<Student> {
 
     private final String firstName;
     private final String lastName;
@@ -30,6 +30,10 @@ public class Student {
         this.courses.putIfAbsent(year, courses);
     }
 
+    public void setTuitionBalance(int balance) {
+        tuitionBalance = balance;
+    }
+
     public void payTuition(int deposit) {
         tuitionBalance -= deposit;
     }
@@ -37,6 +41,10 @@ public class Student {
     String getYearName(int year) {
         String[] years = {"Freshman", "Sophomore", "Junior", "Senior"};
         return years[year - 1];
+    }
+
+    public int compareTo(Student s) {
+        return lastName.compareTo(s.lastName);
     }
 
     public boolean equals(Object o) {
@@ -57,6 +65,7 @@ public class Student {
     }
 
     public String toString() {
-        return String.format("%n%s, %s : %s", lastName, firstName, getYearName(year));
+        return String.format("%n%s, %s : %s",
+                             lastName, firstName, getYearName(year));
     }
 }
