@@ -1,5 +1,6 @@
+package appclasses;
+
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -31,8 +32,8 @@ public class StudentManager {
       private Path dataFolder;
 
       private StudentFormatter() {
-         resource = ResourceBundle.getBundle("students");
-         config = ResourceBundle.getBundle("config");
+         resource = ResourceBundle.getBundle("appclasses.students");
+         config = ResourceBundle.getBundle("appclasses.config");
          studentFormat = new MessageFormat(config.getString("student.data"));
          dataFolder = Path.of(config.getString("data.folder"));
       }
@@ -81,9 +82,22 @@ public class StudentManager {
       return student;
    }
 
-   void loadStudents() {
-      try (BufferedReader in = new BufferedReader(
+   public void loadStudents() {
+      try (var in = new BufferedReader(
            new FileReader(String.valueOf(sf.dataFolder.resolve("students.csv"))))) {
+         String line = null;
+         while ((line = in.readLine()) != null) {
+            students.add(parseStudent(line));
+            numOfStudents++;
+         }
+      } catch (IOException e) {
+         logger.log(Level.SEVERE, "Error loading students " + e.getMessage(), e);
+      }
+   }
+
+   public void loadStudent() {
+      try (var in = new BufferedReader(
+           new FileReader(String.valueOf(sf.dataFolder.resolve("student.csv"))))) {
          String line = null;
          while ((line = in.readLine()) != null) {
             students.add(parseStudent(line));
