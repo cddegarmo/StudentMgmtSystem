@@ -1,6 +1,8 @@
 package user;
 
+import appclasses.Student;
 import appclasses.StudentManager;
+import appclasses.StudentManagerException;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -11,8 +13,13 @@ class MainApplication {
     public static void main(String[] args){
         StudentManager sm = StudentManager.getInstance();
         sm.loadStudents();
-        sm.loadStudent();
+//        sm.loadStudent();
         System.out.println(sm.printStudents());
-        System.out.println(sm.getNumOfStudents());
+        System.out.println(StudentManager.getNumOfStudents());
+        try {
+            System.out.println(sm.findStudent(1003).toString());
+        } catch (StudentManagerException e) {
+            e.getStackTrace();
+        }
     }
 }
