@@ -1,41 +1,37 @@
 package appclasses;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 
 public class Student implements Comparable<Student> {
-
+    private int id;
     private final String firstName;
     private final String lastName;
     private final int year;
-    private int studentID;
-    private final Map<Integer, List<String>> courses = new HashMap<>();
+    private final List<Course> courses = new ArrayList<>();
     private int tuitionBalance = 0;
     
-    Student(String first, String last, int year, int id) {
+    Student(int id, String first, String last, int year) {
+        this.id = id;
         firstName = first;
-        lastName = last;
+        lastName  = last;
         this.year = year;
-        studentID = id;
     }
 
     public String getFirstName()   { return firstName;      }
     public String getLastName()    { return lastName;       }
     public int getYear()           { return year;           }
     public int getTuitionBalance() { return tuitionBalance; }
-    public int getStudentID()      { return studentID;      }
-
-    public void enroll(Integer year, List<String> courses) {
-        this.courses.putIfAbsent(year, courses);
-    }
-
-    public void setTuitionBalance(int balance) {
-        tuitionBalance = balance;
-    }
+    public int getId()             { return id;             }
 
     public void payTuition(int deposit) {
         tuitionBalance -= deposit;
+    }
+
+    public void enroll(Course course) {
+        courses.add(course);
     }
 
     String getYearName(int year) {
