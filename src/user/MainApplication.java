@@ -13,7 +13,6 @@ class MainApplication {
     public static void main(String[] args){
         StudentManager sm = StudentManager.getInstance();
         sm.loadStudents();
-//        sm.loadStudent();
         System.out.println(sm.printStudents());
         System.out.println(StudentManager.getNumOfStudents());
         try {
@@ -21,5 +20,6 @@ class MainApplication {
         } catch (StudentManagerException e) {
             e.getStackTrace();
         }
+        sm.createCourseFiles();
     }
 }

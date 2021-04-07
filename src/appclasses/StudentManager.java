@@ -1,9 +1,9 @@
 package appclasses;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.*;
@@ -16,7 +16,7 @@ public class StudentManager {
    private static final StudentManager sm = new StudentManager();
 
    // Keep track of total enrollment
-   private static final int MAX_STUDENTS = 2000;
+   private static final int MAX_STUDENTS = 999;
    private static int numOfStudents      = 0;
    private static final int COURSE_FEE   = 600;
    private static final Logger logger    = Logger.getLogger(Student.class.getName());
@@ -28,13 +28,17 @@ public class StudentManager {
       private MessageFormat studentFormat;
       private MessageFormat courseFormat;
       private Path dataFolder;
+      private Path studentsFile;
+      private Path paymentsFile;
 
       private StudentFormatter() {
          resource = ResourceBundle.getBundle("appclasses.students");
-         config = ResourceBundle.getBundle("appclasses.config");
+         config   = ResourceBundle.getBundle("appclasses.config");
          studentFormat = new MessageFormat(config.getString("student.data"));
          courseFormat  = new MessageFormat(config.getString("course.data"));
-         dataFolder = Path.of(config.getString("data.folder"));
+         dataFolder    = Path.of(config.getString("data.folder"));
+         studentsFile  = dataFolder.resolve(config.getString("students.file"));
+         paymentsFile  = dataFolder.resolve(config.getString("payments.file"));
       }
 
       private String formatStudent(Student student) {
@@ -46,7 +50,7 @@ public class StudentManager {
       }
    }
 
-   public  final Map<Student, List<Course>> students = new HashMap<>();
+   private final Map<Student, List<Course>> students = new HashMap<>();
    private final StudentFormatter sf = new StudentFormatter();
 
    private StudentManager() {}
@@ -60,7 +64,7 @@ public class StudentManager {
    public static int getCourseFee()     { return COURSE_FEE;    }
 
    private static int generateId() {
-      return numOfStudents + 1000;
+      return 891_000 + numOfStudents;
    }
 
    private void addStudent(Student student) {
@@ -75,7 +79,7 @@ public class StudentManager {
       return students.keySet()
                      .stream()
                      .sorted()
-                     .map(s -> sf.formatStudent(s))
+                     .map(s -> s.getId() + " " + sf.formatStudent(s))
                      .collect(
                           Collectors.joining("\n"));
    }
@@ -109,7 +113,7 @@ public class StudentManager {
 
    public void loadStudents() {
       try (var in = new BufferedReader(
-           new FileReader(String.valueOf(sf.dataFolder.resolve("students.csv"))))) {
+           new FileReader(String.valueOf(sf.studentsFile)))) {
          String line  = null;
          while ((line = in.readLine()) != null) {
             addStudent(parseStudent(line));
@@ -119,17 +123,20 @@ public class StudentManager {
       }
    }
 
-//   public void loadStudent() {
-//      try (var in = new BufferedReader(
-//           new FileReader(String.valueOf(sf.dataFolder.resolve("student.csv"))))) {
-//         String line  = null;
-//         while ((line = in.readLine()) != null) {
-//            addStudent(parseStudent(line));
-//         }
-//      } catch (IOException e) {
-//         logger.log(Level.SEVERE, "Error loading student " + e.getMessage(), e);
-//      }
-//   }
+   public void createCourseFiles() {
+      for (Student student : students.keySet()) {
+         Path courseFile = sf.dataFolder.resolve(MessageFormat.format(
+              sf.config.getString("courses.file"), student.getId()));
+         try (var out = new PrintWriter(new OutputStreamWriter(
+              Files.newOutputStream(courseFile, StandardOpenOption.CREATE), "UTF-8"))) {
+            out.append(System.lineSeparator());
+         } catch (UnsupportedEncodingException e) {
+            logger.log(Level.WARNING, "Error with encoding " + e.getMessage(), e);
+         } catch (IOException e) {
+            logger.log(Level.WARNING, "Error with output " + e.getMessage(), e);
+         }
+      }
+   }
 
    public Student findStudent(int id) throws StudentManagerException {
       return students.keySet()
