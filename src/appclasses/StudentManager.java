@@ -1,9 +1,9 @@
 package appclasses;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.*;
@@ -23,22 +23,21 @@ public class StudentManager {
 
    // Nested class for formatting student input/output
    private static class StudentFormatter {
-      private ResourceBundle resource;
-      private ResourceBundle config;
-      private MessageFormat studentFormat;
-      private MessageFormat courseFormat;
-      private Path dataFolder;
-      private Path studentsFile;
-      private Path paymentsFile;
+      private final ResourceBundle resource;
+      private final ResourceBundle config;
+      private final MessageFormat studentFormat;
+      private final MessageFormat courseFormat;
+      private final MessageFormat paymentFormat;
+      private final Path dataFolder;
 
       private StudentFormatter() {
          resource = ResourceBundle.getBundle("appclasses.students");
          config   = ResourceBundle.getBundle("appclasses.config");
          studentFormat = new MessageFormat(config.getString("student.data"));
          courseFormat  = new MessageFormat(config.getString("course.data"));
-         dataFolder    = Path.of(config.getString("data.folder"));
-         studentsFile  = dataFolder.resolve(config.getString("students.file"));
-         paymentsFile  = dataFolder.resolve(config.getString("payments.file"));
+         paymentFormat = new MessageFormat(config.getString("payment.data"));
+         Path current  = Path.of("").toAbsolutePath();
+         dataFolder    = current.resolve(config.getString("data.folder"));
       }
 
       private String formatStudent(Student student) {
@@ -50,7 +49,7 @@ public class StudentManager {
       }
    }
 
-   private final Map<Student, List<Course>> students = new HashMap<>();
+   private Map<Student, List<Course>> students = new HashMap<>();
    private final StudentFormatter sf = new StudentFormatter();
 
    private StudentManager() {}
@@ -62,19 +61,7 @@ public class StudentManager {
    public static int getMaxStudents()   { return MAX_STUDENTS;  }
    public static int getNumOfStudents() { return numOfStudents; }
    public static int getCourseFee()     { return COURSE_FEE;    }
-
-   private static int generateId() {
-      return 891_000 + numOfStudents;
-   }
-
-   private void addStudent(Student student) {
-      if (numOfStudents < MAX_STUDENTS) {
-         students.putIfAbsent(student, new ArrayList<>());
-         numOfStudents++;
-      } else
-         throw new IllegalStateException("Max students reached. Push enrollment to following year.");
-   }
-
+   
    public String printStudents() {
       return students.keySet()
                      .stream()
@@ -88,10 +75,14 @@ public class StudentManager {
       Student student = null;
       try {
          Object[] values  = sf.studentFormat.parse(text);
-         String firstName = (String) values[0];
-         String lastName  = (String) values[1];
-         int year = Integer.parseInt((String) values[2]);
-         student  = new Student(generateId(), firstName, lastName, year);
+         int id = Integer.parseInt((String) values[0]);
+         String firstName = (String) values[1];
+         String lastName  = (String) values[2];
+         int year = Integer.parseInt((String) values[3]);
+         if (numOfStudents < MAX_STUDENTS) {
+            student = new Student(id, firstName, lastName, year);
+            numOfStudents++;
+         }
       } catch (ParseException e) {
          logger.log(Level.WARNING, "Error parsing student " + e.getMessage(), e);
       }
@@ -111,30 +102,79 @@ public class StudentManager {
       return course;
    }
 
-   public void loadStudents() {
-      try (var in = new BufferedReader(
-           new FileReader(String.valueOf(sf.studentsFile)))) {
-         String line  = null;
-         while ((line = in.readLine()) != null) {
-            addStudent(parseStudent(line));
-         }
+   private int parsePayment(String text) {
+      int payment = 0;
+      try {
+         Object[] values = sf.paymentFormat.parse(text);
+         payment = Integer.parseInt((String) values[0]);
+      } catch (ParseException e) {
+         logger.log(Level.WARNING, "Error parsing payment " + e.getMessage(), e);
+      }
+      return payment;
+   }
+
+   private Student loadStudent(Path file) {
+      Student student = null;
+      try {
+         student = parseStudent(Files.lines(
+              sf.dataFolder.resolve(file), StandardCharsets.UTF_8)
+                               .findFirst()
+                               .orElseThrow());
       } catch (IOException e) {
-         logger.log(Level.SEVERE, "Error loading students " + e.getMessage(), e);
+         logger.log(Level.SEVERE, "Error loading student " + e.getMessage(), e);
+      }
+      return student;
+   }
+
+   private List<Course> loadCourses(Student student) {
+      List<Course> courses = null;
+      Path file = sf.dataFolder.resolve(MessageFormat.format(
+           sf.config.getString("courses.file"), student.getId()));
+      try {
+         courses = Files.lines(file, StandardCharsets.UTF_8)
+                        .map(line -> parseCourse(line))
+                        .filter(course -> course != null)
+                        .collect(Collectors.toList());
+      } catch (IOException e) {
+            logger.log(Level.SEVERE, "Error loading courses " + e.getMessage(), e);
+      }
+      return courses;
+   }
+
+   private int loadPayment(Student student) {
+      int payment = 0;
+      Path file = sf.dataFolder.resolve(MessageFormat.format(
+           sf.config.getString("payment.file"), student.getId()));
+      try {
+         payment = Files.lines(file, StandardCharsets.UTF_8)
+                        .map(Integer::parseInt)
+                        .findFirst()
+                        .orElseThrow();
+      } catch (IOException e) {
+         logger.log(Level.SEVERE, "Error loading payment " + e.getMessage(), e);
+      }
+      return payment;
+   }
+
+   public void loadData() {
+      try {
+         students = Files.list(sf.dataFolder)
+                         .filter(file -> file.getFileName().toString().startsWith("student891"))
+                         .map(file -> loadStudent(file))
+                         .filter(Objects::nonNull)
+                         .collect(Collectors.toMap(student -> student,
+                                                   student -> loadCourses(student)));
+         processTuition();
+      } catch (IOException e) {
+         logger.log(Level.SEVERE, "Error loading all data " + e.getMessage(), e);
       }
    }
 
-   public void createCourseFiles() {
-      for (Student student : students.keySet()) {
-         Path courseFile = sf.dataFolder.resolve(MessageFormat.format(
-              sf.config.getString("courses.file"), student.getId()));
-         try (var out = new PrintWriter(new OutputStreamWriter(
-              Files.newOutputStream(courseFile, StandardOpenOption.CREATE), "UTF-8"))) {
-            out.append(System.lineSeparator());
-         } catch (UnsupportedEncodingException e) {
-            logger.log(Level.WARNING, "Error with encoding " + e.getMessage(), e);
-         } catch (IOException e) {
-            logger.log(Level.WARNING, "Error with output " + e.getMessage(), e);
-         }
+   private void processTuition() {
+      for (var student : students.keySet()) {
+         int tuition = students.get(student).size() * COURSE_FEE;
+         student.setTuitionBalance(tuition);
+         student.payTuition(loadPayment(student));
       }
    }
 
