@@ -10,7 +10,6 @@ public class Student implements Comparable<Student> {
     private final String firstName;
     private final String lastName;
     private final int year;
-    private final List<Course> courses = new ArrayList<>();
     private int tuitionBalance = 0;
     
     Student(int id, String first, String last, int year) {
@@ -26,12 +25,12 @@ public class Student implements Comparable<Student> {
     public int getTuitionBalance() { return tuitionBalance; }
     public int getId()             { return id;             }
 
-    public void payTuition(int deposit) {
-        tuitionBalance -= deposit;
+    public void setTuitionBalance(int balance) {
+        tuitionBalance = balance;
     }
 
-    public void enroll(Course course) {
-        courses.add(course);
+    public void payTuition(int deposit) {
+        tuitionBalance -= deposit;
     }
 
     String getYearName(int year) {
@@ -43,6 +42,7 @@ public class Student implements Comparable<Student> {
         return lastName.compareTo(s.lastName);
     }
 
+    @Override
     public boolean equals(Object o) {
         if (o == this)
             return true;
@@ -53,6 +53,7 @@ public class Student implements Comparable<Student> {
              s.year == year;
     }
 
+    @Override
     public int hashCode() {
         int result = firstName.hashCode();
         result = 31 * result + lastName.hashCode();
@@ -60,6 +61,7 @@ public class Student implements Comparable<Student> {
         return result;
     }
 
+    @Override
     public String toString() {
         return String.format("%n%s, %s : %s",
                              lastName, firstName, getYearName(year));
