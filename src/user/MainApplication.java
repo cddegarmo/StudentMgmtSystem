@@ -4,7 +4,9 @@ import appclasses.Student;
 import appclasses.StudentManager;
 import appclasses.StudentManagerException;
 
+import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -12,14 +14,8 @@ import java.util.Scanner;
 class MainApplication {
     public static void main(String[] args){
         StudentManager sm = StudentManager.getInstance();
-        sm.loadStudents();
-        System.out.println(sm.printStudents());
+        sm.loadData();
         System.out.println(StudentManager.getNumOfStudents());
-        try {
-            System.out.println(sm.findStudent(1003).toString());
-        } catch (StudentManagerException e) {
-            e.getStackTrace();
-        }
-        sm.createCourseFiles();
+        System.out.println(sm.printStudents());
     }
 }
