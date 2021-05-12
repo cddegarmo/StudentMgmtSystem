@@ -1,7 +1,6 @@
 package appclasses;
 
 import java.io.*;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.text.MessageFormat;
@@ -52,6 +51,7 @@ public class StudentManager {
    private Map<Student, List<Course>> students = new HashMap<>();
    private final StudentFormatter sf = new StudentFormatter();
 
+   // Enforce static factory, prohibit subclassing
    private StudentManager() {}
 
    public static StudentManager getInstance() {
@@ -147,7 +147,7 @@ public class StudentManager {
            sf.config.getString("payment.file"), student.getId()));
       try {
          payment = Files.lines(file, StandardCharsets.UTF_8)
-                        .map(Integer::parseInt)
+                        .map(x -> parsePayment(x))
                         .findFirst()
                         .orElseThrow();
       } catch (IOException e) {
@@ -156,6 +156,10 @@ public class StudentManager {
       return payment;
    }
 
+   // This method is fairly complex. It collects the students and their courses into
+   // a map. The method calls within proceed as follows:
+   // loadStudent() -> parseStudent() -> constructor
+   // loadCourses() -> parseCourse() -> constructor
    public void loadData() {
       try {
          students = Files.list(sf.dataFolder)
