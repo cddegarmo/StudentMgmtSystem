@@ -1,10 +1,5 @@
 package appclasses;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.List;
-
 public class Student implements Comparable<Student> {
     private int id;
     private final String firstName;
@@ -12,7 +7,7 @@ public class Student implements Comparable<Student> {
     private final int year;
     private int tuitionBalance = 0;
     
-    Student(int id, String first, String last, int year) {
+    public Student(int id, String first, String last, int year) {
         this.id = id;
         firstName = first;
         lastName  = last;
@@ -33,13 +28,16 @@ public class Student implements Comparable<Student> {
         tuitionBalance -= deposit;
     }
 
-    String getYearName(int year) {
+    public String getYearName(int year) {
         String[] years = {"Freshman", "Sophomore", "Junior", "Senior"};
         return years[year - 1];
     }
 
     public int compareTo(Student s) {
-        return lastName.compareTo(s.lastName);
+        int result = Integer.compare(s.tuitionBalance, tuitionBalance);
+        if (result == 0)
+            result = lastName.compareTo(s.lastName);
+        return result;
     }
 
     @Override
