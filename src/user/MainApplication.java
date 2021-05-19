@@ -6,7 +6,6 @@ class MainApplication {
     public static void main(String[] args){
         StudentManager sm = StudentManager.getInstance();
         sm.loadData();
-        System.out.println(StudentManager.getNumOfStudents());
         System.out.println(sm.printStudents());
     }
 }
