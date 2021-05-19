@@ -137,6 +137,7 @@ public class StudentManager {
                         .collect(Collectors.toList());
       } catch (IOException e) {
             logger.log(Level.SEVERE, "Error loading courses " + e.getMessage(), e);
+            courses = new ArrayList<>();
       }
       return courses;
    }
@@ -160,6 +161,8 @@ public class StudentManager {
    // a map. The method calls within proceed as follows:
    // loadStudent() -> parseStudent() -> constructor
    // loadCourses() -> parseCourse() -> constructor
+   // processTuition() is the "meat" of the program, utilizing the payment
+   // information from each payment file to adjust the students' account balances
    public void loadData() {
       try {
          students = Files.list(sf.dataFolder)
